@@ -1,6 +1,6 @@
 import asyncio
 from pyrogram.types import Message
-from pyrogram import Client
+from pyrogram import Client, filters
 import requests
 from bs4 import BeautifulSoup
 import time
@@ -15,9 +15,10 @@ bot = Client("vergobina",api_id=API_ID,api_hash=API_HASH,bot_token=BOT_TOKEN)
 ACCOUNT = {}
 STATUS = 0
 
-def start_message(client: Client, message: Message):
-    bot.send_message("dev_sorcerer", "Reiniciado y listo para funcionar de nuevo! 🚀")
-    
+@bot.on_startup
+def on_startup_handler(client: Client):
+	client.send_message("dev_sorcerer", "Reiniciado y listo para funcionar de nuevo! 🚀")
+
 @bot.on_message()
 async def message_handler(client: Client, message: Message):
     global ACCOUNT
