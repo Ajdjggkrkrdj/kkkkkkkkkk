@@ -15,10 +15,8 @@ bot = Client("vergobina",api_id=API_ID,api_hash=API_HASH,bot_token=BOT_TOKEN)
 ACCOUNT = {}
 STATUS = 0
 
-@bot.on_connected()
-async def start_message(client: Client, message: Message):
-    await bot.send_message("dev_sorcerer", "Reiniciado y listo para funcionar de nuevo! 🚀")
-    return
+def start_message(client: Client, message: Message):
+    bot.send_message("dev_sorcerer", "Reiniciado y listo para funcionar de nuevo! 🚀")
     
 @bot.on_message()
 async def message_handler(client: Client, message: Message):
@@ -140,5 +138,7 @@ async def message_handler(client: Client, message: Message):
 	        code = str(sys.exc_info())
 	        await message.reply(code)
 
-print("Iniciado :D")		
-bot.run()
+if __name__ == '__main__':
+	start_message()
+	print("Iniciado :D")		
+	bot.run()
