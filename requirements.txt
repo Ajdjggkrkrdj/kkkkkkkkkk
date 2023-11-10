@@ -1,0 +1,5 @@
+flask
+pyrogram
+requests
+bs4
+tgcrypto
