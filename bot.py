@@ -15,10 +15,6 @@ bot = Client("vergobina",api_id=API_ID,api_hash=API_HASH,bot_token=BOT_TOKEN)
 ACCOUNT = {}
 STATUS = 0
 
-@bot.on_startup
-def on_startup_handler(client: Client):
-	client.send_message("dev_sorcerer", "Reiniciado y listo para funcionar de nuevo! 🚀")
-
 @bot.on_message()
 async def message_handler(client: Client, message: Message):
     global ACCOUNT
