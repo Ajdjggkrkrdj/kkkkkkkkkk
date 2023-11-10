@@ -139,7 +139,6 @@ async def message_handler(client: Client, message: Message):
 	        code = str(sys.exc_info())
 	        await message.reply(code)
 
-if __name__ == '__main__':
-	start_message()
-	print("Iniciado :D")		
-	bot.run()
+
+print("Iniciado :D")		
+bot.run()
