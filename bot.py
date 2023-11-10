@@ -15,8 +15,8 @@ bot = Client("vergobina",api_id=API_ID,api_hash=API_HASH,bot_token=BOT_TOKEN)
 ACCOUNT = {}
 STATUS = 0
 
-@bot.on_connected
-async def start_message(client, bot):
+@bot.on_connected()
+async def start_message(client: Client, message: Message):
     await bot.send_message("dev_sorcerer", "Reiniciado y listo para funcionar de nuevo! 🚀")
     return
     
