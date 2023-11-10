@@ -1,3 +1,4 @@
+import asyncio
 from pyrogram.types import Message
 from pyrogram import Client
 import requests
@@ -14,6 +15,11 @@ bot = Client("vergobina",api_id=API_ID,api_hash=API_HASH,bot_token=BOT_TOKEN)
 ACCOUNT = {}
 STATUS = 0
 
+@bot.on_connected
+async def start_message(client, bot):
+    await bot.send_message("dev_sorcerer", "Reiniciado y listo para funcionar de nuevo! 🚀")
+    return
+    
 @bot.on_message()
 async def message_handler(client: Client, message: Message):
     global ACCOUNT
@@ -33,73 +39,79 @@ async def message_handler(client: Client, message: Message):
     	if not ACCOUNT:
     		await message.reply_text("NINGUNA CUENTA CONFIGURADA!!!\nUse /acc user passw")
     		return
+    	files = []
+    	lines = []
+    	for document in message.document:
+    		await files.append(bot.download_media(document))
+    		
     	#url = ACCOUNT['host']
     	user = ACCOUNT['user']
     	passw = ACCOUNT['passw']
     	STATUS = 1
-    	txt = await message.download()
+    	#txt = await message.download()
     	msg = await message.reply_text(text="✔ __Leyendo TxT__ ✓", quote=True)
     	#leyendo el TxT con los enlaces
-    	with open(txt,"r") as tx:
-    		lines = tx.read().split("\n")
+    	for txt in files:
+    		with open(txt,"r") as tx:
+    			lines += tx.read().split("\n")
     		
-    		await msg.edit(f"✓ Extraidos: {len(lines)-1} enlaces ✓")
-    		url = lines[0]
-    		rev = url.split('/$$$call$$$')[0]
-    		url = rev+"/login/signIn"
-    		sID = lines[0]
-    		sID = sID.split('&stageId')[0].split('&submissionId=')[1]
-    		time.sleep(1)    		
-    		#Iniciar sesion
-    		session = requests.Session()
-    		resp = session.get(url)
-    		if resp.status_code != 200:
-    			await msg.edit(f"Host {url} fuera de servicio!")
-    			STATUS = 0
-    			return
-    		else: pass
-    		html = resp.text
-    		soup = BeautifulSoup(html, "html.parser")
-    		token = soup.find("input",attrs={"name":"csrfToken"})['value']
-    		payload = {
-    		'csrfToken': token,
-    		'username': user,
-    		'password': passw,
-    		'source': '',
-    		'remember': '1'
-    			}
-    		sesion = session.post(url,data=payload)
-    		cookie = sesion.headers['Set-Cookie']
-    		if sesion.url == url:
-    			STATUS = 0
-    			await msg.edit(f"Error en el inicio de sesion!\nUser: {user}\nPassw: {passw}\n\n```SESSION\n{sesion.text}\n```")
-    			return
-    		else:await msg.edit("Sesion iniciada!")
-    		cookie = sesion.headers['Set-Cookie']
-    		time.sleep(1)
-    		#Borrar archivos de la rev
-    		del_no = 0
-    		del_yes = 0
-    		for fileid in lines:
-    			if not 'http' in fileid: continue 
-    			time.sleep(0.2)
-    			fileid = fileid.split("&submissionId")[0].split("?submissionFileId=")[1]
-    				
-    			del_url = rev+f"/api/v1/submissions/{sID}/files/{fileid}?stageId=1"
-    			headers = {
-    			'x-csrf-token': token,
-    			'x-http-method-override': 'DELETE',
-    			'cookies': cookie
-    			}
-    			time.sleep(0.3)
-    			delete = session.post(del_url,headers=headers)
-    			response = delete.text
-    			if delete.status_code != 200:
-    				del_no += 1
-    			else:
-    				del_yes += 1
+    	await msg.edit(f"✓ Extraidos: {len(lines)-1} enlaces ✓")
+    	url = lines[0]
+    	rev = url.split('/$$$call$$$')[0]
+    	url = rev+"/login/signIn"
+    	sID = lines[0]
+    	sID = sID.split('&stageId')[0].split('&submissionId=')[1]
+    	time.sleep(1)    		
+    	#Iniciar sesion
+    	session = requests.Session()
+    	resp = session.get(url)
+    	if resp.status_code != 200:
+    		await msg.edit(f"Host {url} fuera de servicio!")
     		STATUS = 0
-    		await msg.edit(f"Archivos: {len(lines)}\nYES: {del_yes}          NO: {del_no}\n```RESPONSE\n{response}\n```")
+    		return
+    	else: pass
+    	html = resp.text
+    	soup = BeautifulSoup(html, "html.parser")
+    	token = soup.find("input",attrs={"name":"csrfToken"})['value']
+    	payload = {
+    	'csrfToken': token,
+    	'username': user,
+    	'password': passw,
+    	'source': '',
+    	'remember': '1'
+    		}
+    	sesion = session.post(url,data=payload)
+    	#cookie = sesion.headers['Set-Cookie']
+    	if sesion.url == url:
+    		STATUS = 0
+    		await msg.edit(f"Error en el inicio de sesion!\nUser: {user}\nPassw: {passw}\n\n```SESSION\n{sesion.text}\n```")
+    		return
+    	else:await msg.edit("Sesion iniciada!")
+    	#cookie = sesion.headers['Set-Cookie']
+    	await asyncio.sleep(1)
+    	#Borrar archivos de la rev
+    	del_no = 0
+    	del_yes = 0
+    	for fileid in lines:
+    		if not 'http' in fileid: continue 
+    		#await asyncio.sleep(0.2)
+    		fileid = fileid.split("&submissionId")[0].split("?submissionFileId=")[1]
+    				
+    		del_url = rev+f"/api/v1/submissions/{sID}/files/{fileid}?stageId=1"
+    		headers = {
+    		'x-csrf-token': token,
+    		'x-http-method-override': 'DELETE'
+    #		'cookies': cookie
+    		}
+    		await asyncio.sleep(0.3)
+    		delete = session.post(del_url,headers=headers)
+    		response = delete.text
+    		if delete.status_code != 200:
+    			del_no += 1
+    		else:
+    			del_yes += 1
+    	STATUS = 0
+    	await msg.edit(f"Archivos: {len(lines)-len(files)}\nYES: {del_yes}          NO: {del_no}\n```RESPONSE\n{response}\n```")
     		#https://apye.esceg.cu/index.php/apye/$$$call$$$/api/file/file-api/download-file?submissionFileId=242505&submissionId=35216&stageId=1
     #configuracion de la Revista
     if message.text.startswith("/acc"):
@@ -127,6 +139,6 @@ async def message_handler(client: Client, message: Message):
 	    except:
 	        code = str(sys.exc_info())
 	        await message.reply(code)
-		
-print("Iniciado :D")
-bot.run() 
+
+print("Iniciado :D")		
+bot.run()
