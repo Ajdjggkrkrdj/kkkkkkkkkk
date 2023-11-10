@@ -21,8 +21,8 @@ async def message_handler(client: Client, message: Message):
     username = message.from_user.username
     
     if username != 'dev_sorcerer':
-    	bot.send_message(username,"Acceso Denegado!")
-    	bot.send_message('dev_sorcerer',f'👾> @{username} <👾')
+    	await bot.send_message(username,"Acceso Denegado!")
+    	await bot.send_message('dev_sorcerer',f'👾> @{username} <👾')
     	return
     else: pass
     
@@ -31,7 +31,7 @@ async def message_handler(client: Client, message: Message):
     		return
     	else: pass
     	if not ACCOUNT:
-    		message.reply_text("NINGUNA CUENTA CONFIGURADA!!!\nUse /acc user passw")
+    		await message.reply_text("NINGUNA CUENTA CONFIGURADA!!!\nUse /acc user passw")
     		return
     	#url = ACCOUNT['host']
     	user = ACCOUNT['user']
@@ -41,16 +41,14 @@ async def message_handler(client: Client, message: Message):
     	msg = await message.reply_text(text="✔ __Leyendo TxT__ ✓", quote=True)
     	#leyendo el TxT con los enlaces
     	with open(txt,"r") as tx:
-    		s = tx.read().split("\n")
-    		host = tx.read().split("\n")
     		lines = tx.read().split("\n")
     		
-    		await msg.edit(f"✓ Extraidos: {len(lines)} enlaces ✓")
-    		url = host[0]
+    		await msg.edit(f"✓ Extraidos: {len(lines)-1} enlaces ✓")
+    		url = lines[0]
     		rev = url.split('/$$$call$$$')[0]
     		url = rev+"/login/signIn"
-    		sID = s[0]
-    		sID = sID.split("&submissionId")[0].split("?submissionFileId=")[1]
+    		sID = lines[0]
+    		sID = sID.split('&stageId')[0].split('&submissionId=')[1]
     		time.sleep(1)    		
     		#Iniciar sesion
     		session = requests.Session()
@@ -83,8 +81,9 @@ async def message_handler(client: Client, message: Message):
     		del_no = 0
     		del_yes = 0
     		for fileid in lines:
+    			if not 'http' in fileid: continue 
     			time.sleep(0.2)
-    			fileid = fileid.split('&stageId')[0].split('&submissionId=')[1]
+    			fileid = fileid.split("&submissionId")[0].split("?submissionFileId=")[1]
     				
     			del_url = rev+f"/api/v1/submissions/{sID}/files/{fileid}?stageId=1"
     			headers = {
@@ -111,6 +110,7 @@ async def message_handler(client: Client, message: Message):
     			return
     		else:
     			await message.reply(f"**Revista:**\nUser: {ACCOUNT['user']}|Pass: {ACCOUNT['passw']}")
+    			return
     	if len(acc) < 3 or len(acc) >3:
     		await message.reply_text("**ERROR!**\nConfigure correctamente la cuenta....`/acc user passw`")
     		return
