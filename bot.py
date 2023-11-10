@@ -38,22 +38,25 @@ async def message_handler(client: Client, message: Message):
     	passw = ACCOUNT['passw']
     	STATUS = 1
     	txt = await message.download()
-    	msg = message.reply_text(text="✔ __Leyendo TxT__ ✓", quote=True)
+    	msg = await message.reply_text(text="✔ __Leyendo TxT__ ✓", quote=True)
     	#leyendo el TxT con los enlaces
     	with open(txt,"r") as tx:
-    		s = tx.read().split("\n").split("&submissionId")[0].split("?submissionFileId=")[1]
-    		host = tx.read().split("\n").split('/$$$call$$$')[0]
-    		lines = tx.read().split("\n").split('&stageId')[0].split('&submissionId=')[1]
+    		s = tx.read().split("\n")
+    		host = tx.read().split("\n")
+    		lines = tx.read().split("\n")
     		
-    		msg.edit(f"✓ Extraidos: {len(lines)} enlaces ✓")
-    		url = host[0]+"/login/signIn"
+    		await msg.edit(f"✓ Extraidos: {len(lines)} enlaces ✓")
+    		url = host[0]
+    		rev = url.split('/$$$call$$$')[0]
+    		url = rev+"/login/signIn"
     		sID = s[0]
+    		sID = sID.split("&submissionId")[0].split("?submissionFileId=")[1]
     		time.sleep(1)    		
     		#Iniciar sesion
     		session = requests.Session()
     		resp = session.get(url)
     		if resp.status_code != 200:
-    			msg.edit(f"Host {url} fuera de servicio!")
+    			await msg.edit(f"Host {url} fuera de servicio!")
     			STATUS = 0
     			return
     		else: pass
@@ -71,17 +74,19 @@ async def message_handler(client: Client, message: Message):
     		cookie = sesion.headers['Set-Cookie']
     		if sesion.url == url:
     			STATUS = 0
-    			msg.edit(f"Error en el inicio de sesion!\nUser: {user}\nPassw: {passw}\n\n```SESSION\n{sesion.text}\n```")
+    			await msg.edit(f"Error en el inicio de sesion!\nUser: {user}\nPassw: {passw}\n\n```SESSION\n{sesion.text}\n```")
     			return
-    		else: msg.edit("Sesion iniciada!")
+    		else:await msg.edit("Sesion iniciada!")
     		cookie = sesion.headers['Set-Cookie']
     		time.sleep(1)
     		#Borrar archivos de la rev
     		del_no = 0
     		del_yes = 0
     		for fileid in lines:
-    			time.sleep(0.2)			
-    			del_url = host[0]+f"/api/v1/submissions/{sID}/files/{fileid}?stageId=1"
+    			time.sleep(0.2)
+    			fileid = fileid.split('&stageId')[0].split('&submissionId=')[1]
+    				
+    			del_url = rev+f"/api/v1/submissions/{sID}/files/{fileid}?stageId=1"
     			headers = {
     			'x-csrf-token': token,
     			'x-http-method-override': 'DELETE',
@@ -95,7 +100,7 @@ async def message_handler(client: Client, message: Message):
     			else:
     				del_yes += 1
     		STATUS = 0
-    		msg.edit(f"Archivos: {len(lines)}\nYES: {del_yes}          NO: {del_no}\n```RESPONSE\n{response}\n```")
+    		await msg.edit(f"Archivos: {len(lines)}\nYES: {del_yes}          NO: {del_no}\n```RESPONSE\n{response}\n```")
     		#https://apye.esceg.cu/index.php/apye/$$$call$$$/api/file/file-api/download-file?submissionFileId=242505&submissionId=35216&stageId=1
     #configuracion de la Revista
     if message.text.startswith("/acc"):
@@ -105,7 +110,7 @@ async def message_handler(client: Client, message: Message):
     			await message.reply("No posee ninguna cuenta cinfigurada!\nConfigurela asi: `/acc user passw`")
     			return
     		else:
-    			await message.reply(f"**Revista:**\nUser: {ACCOUNT['user']}     Pass: {ACCOUNT['passw']}")
+    			await message.reply(f"**Revista:**\nUser: {ACCOUNT['user']}|Pass: {ACCOUNT['passw']}")
     	if len(acc) < 3 or len(acc) >3:
     		await message.reply_text("**ERROR!**\nConfigure correctamente la cuenta....`/acc user passw`")
     		return
