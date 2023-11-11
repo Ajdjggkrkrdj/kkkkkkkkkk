@@ -60,7 +60,7 @@ async def message_handler(client: Client, message: Message):
     	await asyncio.sleep(1)    		
     	#Iniciar sesion
     	session = requests.Session()
-    	resp = session.get(url)
+    	resp = session.get(rev+'/login')
     	if resp.status_code != 200:
     		await msg.edit(f"Host {url} fuera de servicio!")
     		STATUS = 0
