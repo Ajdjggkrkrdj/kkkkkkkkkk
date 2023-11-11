@@ -7,18 +7,24 @@ import time
 import sys
 
 print("Iniciando...")
-
+# Power by @dev_sorcerer
 API_ID = 17617166
 API_HASH = "3ff86cddc30dcd947505e0b8493ce380"
 BOT_TOKEN = "6259805306:AAHqwU0b2zejNlvTbOiIZWq4s0YyGEQgyeo"
 bot = Client("vergobina",api_id=API_ID,api_hash=API_HASH,bot_token=BOT_TOKEN)
 ACCOUNT = {}
 STATUS = 0
+"""files = []
+@bot.on_message(filters.media & filters.private)
+async def down_txt(client: Client, message: Message):
+	global files"""
+
 
 @bot.on_message()
 async def message_handler(client: Client, message: Message):
     global ACCOUNT
     global STATUS
+    #global files
     username = message.from_user.username
     
     if username != 'dev_sorcerer':
@@ -33,22 +39,17 @@ async def message_handler(client: Client, message: Message):
     	else: pass
     	if not ACCOUNT:
     		await message.reply_text("NINGUNA CUENTA CONFIGURADA!!!\nUse /acc user passw")
-    		return
-    	files = []
-    	lines = []
-    	for document in message.document:
-    		await files.append(bot.download_media(document))
-    		
+    		return    		
     	#url = ACCOUNT['host']
     	user = ACCOUNT['user']
     	passw = ACCOUNT['passw']
     	STATUS = 1
-    	#txt = await message.download()
+    	txt = await message.download()
     	msg = await message.reply_text(text="✔ __Leyendo TxT__ ✓", quote=True)
     	#leyendo el TxT con los enlaces
-    	for txt in files:
-    		with open(txt,"r") as tx:
-    			lines += tx.read().split("\n")
+    	#lines = []
+    	with open(txt,"r") as tx:
+    		lines = tx.read().split("\n")
     		
     	await msg.edit(f"✓ Extraidos: {len(lines)-1} enlaces ✓")
     	url = lines[0]
@@ -56,7 +57,7 @@ async def message_handler(client: Client, message: Message):
     	url = rev+"/login/signIn"
     	sID = lines[0]
     	sID = sID.split('&stageId')[0].split('&submissionId=')[1]
-    	time.sleep(1)    		
+    	await asyncio.sleep(1)    		
     	#Iniciar sesion
     	session = requests.Session()
     	resp = session.get(url)
@@ -76,7 +77,6 @@ async def message_handler(client: Client, message: Message):
     	'remember': '1'
     		}
     	sesion = session.post(url,data=payload)
-    	#cookie = sesion.headers['Set-Cookie']
     	if sesion.url == url:
     		STATUS = 0
     		await msg.edit(f"Error en el inicio de sesion!\nUser: {user}\nPassw: {passw}\n\n```SESSION\n{sesion.text}\n```")
@@ -87,7 +87,16 @@ async def message_handler(client: Client, message: Message):
     	#Borrar archivos de la rev
     	del_no = 0
     	del_yes = 0
+    	await msg.edit("🚮")
+    	delete_msg = '🔃'
     	for fileid in lines:
+    		if delete_msg == '🔃':
+    			await msg.edit("🔄")
+    			delete_msg = '🔄'
+    		else:
+    			await msg.edit("🔃")
+    			delete_msg = '🔃'
+    		await asyncio.sleep(0.2)
     		if not 'http' in fileid: continue 
     		#await asyncio.sleep(0.2)
     		fileid = fileid.split("&submissionId")[0].split("?submissionFileId=")[1]
@@ -96,18 +105,18 @@ async def message_handler(client: Client, message: Message):
     		headers = {
     		'x-csrf-token': token,
     		'x-http-method-override': 'DELETE'
-    #		'cookies': cookie
-    		}
-    		await asyncio.sleep(0.3)
-    		delete = session.post(del_url,headers=headers)
+    	#	'cookies': cookie
+    		}    		
+    		delete = session.post(del_url,headers=headers)   		
     		response = delete.text
     		if delete.status_code != 200:
     			del_no += 1
     		else:
     			del_yes += 1
+    		await asyncio.sleep(0.3)
+    		
     	STATUS = 0
-    	await msg.edit(f"Archivos: {len(lines)-len(files)}\nYES: {del_yes}          NO: {del_no}\n```RESPONSE\n{response}\n```")
-    		#https://apye.esceg.cu/index.php/apye/$$$call$$$/api/file/file-api/download-file?submissionFileId=242505&submissionId=35216&stageId=1
+    	await msg.edit(f"Archivos: {len(lines)-1}\nYES: {del_yes}          NO: {del_no}\n```RESPONSE\n{response}\n```")		    		
     #configuracion de la Revista
     if message.text.startswith("/acc"):
     	acc = message.text.split(" ")
@@ -125,6 +134,7 @@ async def message_handler(client: Client, message: Message):
     	ACCOUNT['user'] = acc[1]
     	ACCOUNT['passw'] = acc[2]
     	await message.reply_text(f"**Cuenta correctamemte configurada!**\nUsuario: `{acc[1]}`\nContraseña: `{acc[2]}`")
+    
     #codigo al vuelo
     if message.text.startswith("/eval"):
 	    splitmsg = message.text.replace("/eval", "").strip()
