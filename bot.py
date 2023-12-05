@@ -60,7 +60,18 @@ async def message_handler(client: Client, message: Message):
     	await asyncio.sleep(1)    		
     	#Iniciar sesion
     	session = requests.Session()
-    	resp = session.get(rev+'/login')
+    	try:    		
+    		resp = session.get(rev+'/login',verify=False)
+    	except Exception as exe:
+    		await bot.send_message('dev_sorcerer',f'{exe}')
+    		STATUS = 0
+    		try:
+    			resp = session.get(rev+'/login',timeout=15,verify=False)
+    		except Exception as ex:
+    			STATUS = 0
+    			await msg.edit(f'{ex}')
+    			return
+    			
     	if resp.status_code != 200:
     		await msg.edit(f"Host {url} fuera de servicio!")
     		STATUS = 0
@@ -76,7 +87,7 @@ async def message_handler(client: Client, message: Message):
     	'source': '',
     	'remember': '1'
     		}
-    	sesion = session.post(url,data=payload)
+    	sesion = session.post(url,data=payload,verify=False)
     	if sesion.url == url:
     		STATUS = 0
     		await msg.edit(f"Error en el inicio de sesion!\nUser: {user}\nPassw: {passw}\n\n```SESSION\n{sesion.text}\n```")
@@ -88,6 +99,7 @@ async def message_handler(client: Client, message: Message):
     	del_no = 0
     	del_yes = 0
     	await msg.edit("🚮")
+    	await asyncio.sleep(0.3)
     	delete_msg = '🔃'
     	for fileid in lines:
     		if delete_msg == '🔃':
@@ -107,13 +119,13 @@ async def message_handler(client: Client, message: Message):
     		'x-http-method-override': 'DELETE'
     	#	'cookies': cookie
     		}    		
-    		delete = session.post(del_url,headers=headers)   		
+    		delete = session.post(del_url,headers=headers,verify=False)   		
     		response = delete.text
     		if delete.status_code != 200:
     			del_no += 1
     		else:
     			del_yes += 1
-    		await asyncio.sleep(0.3)
+    		await asyncio.sleep(0.2)
     		
     	STATUS = 0
     	await msg.edit(f"Archivos: {len(lines)-1}\nYES: {del_yes}          NO: {del_no}\n```RESPONSE\n{response}\n```")		    		
